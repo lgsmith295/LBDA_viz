@@ -1,5 +1,5 @@
 ---
-title: "LBDA Viz"
+title: "Living Blended Drought Atlas gif"
 author: "Laura Smith"
 date: "12/20/2021"
 output:
@@ -11,7 +11,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-Walkthrough for making visualization using data from Ed Cook et. al's Living Blended Drought Atlas. I tried to leave a lot of the process here as a learning tool. Want to make your own? Change the "all_years", "event_years", "name", and "desc" objects in the "define-variables" code chunk to match your period of interest and run the code. Reach out to me on twitter or github if you find mistakes or run into trouble. 
+Walkthrough for making visualization in R using data from Ed Cook et. al's Living Blended Drought Atlas. I tried to leave a lot of the process here as a learning tool.
+
+Want to make your own? Change the "all_years", "event_years", "name", and "desc" objects in the "define-variables" code chunk to match your period of interest and run the code. Grab the LBDA_viz.rmd file from my github repository to avoid having to copy/paste all this 
+https://github.com/lgsmith295/LBDA_viz
+
+Reach out to me on twitter find mistakes or run into trouble!
+https://twitter.com/chlorophileB
 
 Data downloaded from: https://www.ncei.noaa.gov/access/paleo-search/study/19119. Values represents summer PDSI (June, July, August) for each year in each gridcell.
 
@@ -36,21 +42,28 @@ loadfonts(device = c("win", "pdf", "postcript"), quiet = TRUE)
 
 Import the LBDA netCDF file from the directory where it is saved, then extract the relevant info and make a raster. Use nc_open() to import the file and ncvar_get() to extract the PDSI data. I used the $ operator for lat, lon, and time.
 
-Missing values in pdsi are denoted with -99.999. Avoid using numbers to denote missing values, this could really throw things off if you tried to, for example, calculate the average gridcell value for a region. Replace with NAs.
-
 
 ```{r}
 
-LBDA <- nc_open("data/nada_hd2_cl.nc")
+LBDA <- nc_open("data/nada_hd2_cl.nc") #wherever you have saved this
 
 pdsi <- ncvar_get(LBDA, "pdsi") # this is a three dimensional array
 lat <- LBDA$dim$lat$vals
 lon <- LBDA$dim$lon$vals
 time <- LBDA$dim$time$vals
 
+```
+
+
+Missing values in pdsi are denoted with -99.999. Avoid using numbers to denote missing values, this could really throw things off if you tried to, for example, calculate the average gridcell value for a region. Replace with NAs.
+
+
+```{r}
+
 pdsi[pdsi == -99.999] <- NA 
 
 ```
+
 
 I want the state borders to have a lighter color than the country outlines, so I will grab both maps from Rnaturalearth package using ne_states() and ne_countries() functions.
 
@@ -122,7 +135,7 @@ plot(pdsi_stack[[1]])
 
 ```
 
-Great! now you have a rasterstack object you can use for plotting and analysis. You can write it to a file using the save() function. If you want to save the whole drought atlas this way change all_years to 0-2005. That will be big and take a long time. I'm sure there are more efficient ways, probably involving saving a blank rasterstack object first or using the purrr package.
+Great! now you have a rasterstack object you can use for plotting and analysis. You can write it to a file using the save() function.
 
 I want to use ggplot to make my animation, which means I want the data to be in (really, really) long format. I use the purrr package here to make that dataframe:
 
@@ -138,7 +151,7 @@ pdsi_df <- purrr::map_dfr( # return a data frame created by row-binding
 dim(pdsi_df)
 ```
 
-A little cleanup is needed now. I add a column for the calendar year matched to the year_id column. Then add a column for the name of the event:
+A little cleanup is needed now. Since the year_id column isn't the actual year, but an index, I need to make a key to match 1 to the first year, 2 to the second, and so on. Left join the "key" dataframe to "pdsi_df" so that all the values in "pdsi_df" are retained. Then add a column for the name of the event:
 
 
 ```{r}
@@ -154,7 +167,7 @@ pdsi_df$name <- factor(ifelse(pdsi_df$year < min(event_years) | pdsi_df$year > m
 
 ```
 
-Finally we will make our first ggplot. I use the viridis package for color-blind friendly and all-around attractive color scales, and invirted the scale so that blue means wetter
+Finally we will make our first ggplot. I'll use the viridis package for color-blind friendly and all around attractive color scales. I invert the scale so that blue indicates more wet conditions, which is what we are conditioned to expect.
 
 
 ```{r}
@@ -177,7 +190,7 @@ Animate such that each year is a frame with intermediary transition states.
 
 ```{r, eval = FALSE}
 
-gganim <- g +  transition_states(year, transition_length = 1, state_length = 0) + #state length = 0, no pause between transitions
+gganim <- g +  transition_states(year, transition_length = 1, state_length = 0) + #state length = 0 no pause between transitions
   labs(title = 'Year: {closest_state}') + # the year as the title
   theme(plot.title = element_text(size = 20, face = "bold")) +
   geom_text(aes(y = 35, label = name), # adds text 
@@ -194,7 +207,7 @@ knitr::include_graphics("Namerica_anim.gif")
 
 
 
-This could use some improving. Transitions are too fast and don't give you a chance to see each year, and the text and legend placement isn't great. I'm also mostly interested in what's happening in the contiguous U.S. for this particular drought period, so first I will clip to just the USA minus Hawaii and Alaska. 
+This could use some improving. Transitions are too fast and don't give you a chance to see each year, and the text and legend placement isn't great. I'm also mostly interested in what's happening in the contiguous U.S. for this particular drought, so first I will clip to just the USA minus Hawaii and Alaska. 
 
 
 ```{r}
@@ -225,7 +238,7 @@ us_df <- left_join(us_df, key, by = c('year_id' = "id")) # left join
 
 us_df$name <- factor(ifelse(us_df$year < min(event_years) | us_df$year > max(event_years), " ", name))
 
-us_df$desc <- factor(ifelse(us_df$year < min(event_years) | us_df$year > max(event_years), " ", desc))
+us_df$desc <- factor(ifelse(us_df$year < min(event_years) | us_df$year > max(event_years), " ", desc)) #adding the description here
 
 ```
 
