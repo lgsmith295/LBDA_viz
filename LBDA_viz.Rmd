@@ -90,6 +90,7 @@ all_years and event_years can be the same, but I want to show the 5 years on eit
 
 all_years <- c(1851:1870)
 event_years <- c(1856:1865)
+title <- "Living Blended Drought Atlas 1851-1870"
 name <- "Civil War Drought"
 desc <- "Sustained La Niña conditions in Pacific sea surface temperatures caused widespread drought in the central and western United States. This contributed to the near extinction of the Plains Bison in the 19th century."
 
@@ -214,7 +215,7 @@ This could use some improving. Transitions are too fast and don't give you a cha
 
 ```{r}
 
-rm(list=ls()[! ls() %in% c("pdsi_stack", "all_years", "event_years", "desc", "name")]) #clean up environment
+rm(list=ls()[! ls() %in% c("pdsi_stack", "all_years", "event_years", "desc", "name", "title")]) #clean up environment
 
 us_states <- ne_states(country = c("United States of America"),  returnclass = "sf")
 
@@ -257,7 +258,7 @@ g <- ggplot(data = us_df, aes(x = x, y = y, fill = PDSI))  +
   theme(legend.key.width = unit(.50,"cm"), legend.position = c(.68, .25)) +
   scale_x_continuous(limits = c(-125, -48))+ #Added a little extra room for text and graphics 
   scale_y_continuous(limits = c(15, 50)) +
-  labs(title = "Living Blended Drought Atlas 1851-1870") +
+  labs(title = title) +
   theme(plot.title = element_text(size = 15, face = "bold")) +
   geom_segment(aes(x = -63.5, y = 29.6, xend = -63.5, yend = 35.8), #blue up arrow
                arrow = arrow(length = unit(0.2, "cm")), 
@@ -295,7 +296,7 @@ gganim2 <- g +  transition_states(year, transition_length = 1, state_length = 2)
   labs(subtitle = 'Year: {closest_state}') + # year as subtitle 
   theme(plot.subtitle = element_text(size = 14, family = "serif")) +
   geom_text(aes(y = 24, label = name), #name of drought, remove if you don't want this to show up
-            x = -118, check_overlap = TRUE, size = 4, fontface = "bold") +
+            x = -119.5, check_overlap = TRUE, size = 4, fontface = "bold") +
   geom_text(aes(y = 20.5, label = str_wrap(desc)), # drought description, remove if you don't want this to show up
             x = -128, check_overlap = TRUE, size = 4, lineheight = .8, hjust = 0)
 
