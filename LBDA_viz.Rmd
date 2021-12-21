@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-A walkthrough for making visualizations in R using data from Ed Cook et. al's Living Blended Drought Atlas. I tried to leave a lot of the process here as a learning tool.
+A walkthrough for making visualizations in R using data from Ed Cook et. al's Living Blended Drought Atlas.
 
 Want to make your own? Change the "all_years", "event_years", "name", and "desc" objects in the "define-variables" code chunk to match your period of interest and run the code. Grab the LBDA_viz.rmd file from my github repository to avoid having to copy/paste all this 
 https://github.com/lgsmith295/LBDA_viz
@@ -40,7 +40,7 @@ library(extrafont)
 loadfonts(device = c("win", "pdf", "postcript"), quiet = TRUE)
 ```
 
-Import the LBDA netCDF file from the directory where it is saved, then extract the relevant info and make a raster. Use nc_open() to import the file and ncvar_get() to extract the PDSI data. I used the $ operator for lat, lon, and time.
+Import the LBDA netCDF file from the directory where it is saved, then extract the relevant info. Use nc_open() to import the file and ncvar_get() to extract the PDSI data. I used the $ operator for lat, lon, and time.
 
 
 ```{r}
@@ -95,7 +95,7 @@ desc <- "Sustained La Niña conditions in Pacific sea surface temperatures cause
 
 ```
 
-This next step creates a raster layer for each year and puts them all together in a RasterStack called pdsi_stack. I do this in a for loop.
+This next step creates a raster layer for each year and puts them all together in a RasterStack called pdsi_stack. I do this using a for loop.
 
 
 ```{r}
@@ -118,7 +118,7 @@ for(i in 1: length(ind_years)){ #for ever year in all_years, create a raster lay
 }
 ```
 
-Check to make sure the first raster layer matches the first year of data, in this case 1851. all.equal Should evaluate to TRUE. I also visually checked it against the drought atlas animation tool at http://drought.memphis.edu/NADA/. An important step! 
+Check to make sure the first raster layer matches the first year of data, in this case 1851. all.equal() Should evaluate to TRUE. I also visually checked it against the drought atlas animation tool at http://drought.memphis.edu/NADA/. An important step! 
 
 
 ```{r}
@@ -151,7 +151,7 @@ pdsi_df <- purrr::map_dfr( # return a data frame created by row-binding
 dim(pdsi_df)
 ```
 
-A little cleanup is needed now. Since the year_id column isn't the actual year, but an index, I need to make a key to match 1 to the first year, 2 to the second, and so on. Left join the "key" dataframe to "pdsi_df" so that all the values in "pdsi_df" are retained. Then add a column for the name of the event:
+A little cleanup is needed now. Since the year_id column isn't the actual year, but an index, I need to make a key to match 1 to the first year, 2 to the second, and so on. Left join the "key" dataframe to "pdsi_df" so that all the values in "pdsi_df" are retained. Then add a column for the name of the event only during the event years:
 
 
 ```{r}
@@ -167,7 +167,7 @@ pdsi_df$name <- factor(ifelse(pdsi_df$year < min(event_years) | pdsi_df$year > m
 
 ```
 
-Finally we will make our first ggplot. I'll use the viridis package for color-blind friendly and all around attractive color scales. I invert the scale so that blue indicates more wet conditions, which is what we are conditioned to expect.
+Finally we will make our first ggplot. I use the viridis package for color-blind friendly and all around attractive color scales. I invert the scale so that blue indicates more wet conditions, which is what we are conditioned to expect.
 
 
 ```{r}
@@ -193,13 +193,14 @@ Animate such that each year is a frame with intermediary transition states.
 gganim <- g +  transition_states(year, transition_length = 1, state_length = 0) + #state length = 0 no pause between transitions
   labs(title = 'Year: {closest_state}') + # the year as the title
   theme(plot.title = element_text(size = 20, face = "bold")) +
-  geom_text(aes(y = 35, label = name), # adds text 
+  geom_text(aes(y = 35, label = name), # adds text with the name of the event during the event 
             x = -60, check_overlap = TRUE)
 
 
 animate(gganim, fps = 10) #this can take 2-3 minutes
 
 ```
+
 ```{R}
 knitr::include_graphics("Namerica_anim.gif")
 ```
@@ -211,6 +212,7 @@ This could use some improving. Transitions are too fast and don't give you a cha
 
 
 ```{r}
+
 rm(list=ls()[! ls() %in% c("pdsi_stack", "all_years", "event_years", "desc", "name")]) #clean up environment
 
 us_states <- ne_states(country = c("United States of America"),  returnclass = "sf")
@@ -283,7 +285,7 @@ g
 ```
 
 
-Looking better! I would like the animation to move a little slower and pause on each year, which I can adjust in the transition_states() function. I also add the drought description and adjust the placement of that text. The speed, size, and resolution are adjusted in the animate() function. 
+Looking better! I would like the animation to move a little slower and pause on each year, which I can adjust in the transition_states() function. I add the drought description and adjust the placement of that text. The speed and frames per second is adjusted in the animate() function. 
 
 
 ```{r, eval = FALSE}
@@ -307,4 +309,4 @@ anim_save("USA_anim.gif", animation = last_animation())
 knitr::include_graphics("USA_anim.gif")
 ```
 
-There you have it. Size and resolution can still use some tweaking. That can be done in the animate() function. 
+There you have it. Size and resolution can still use some tweaking. That can also be done in the animate() function. 
