@@ -149,6 +149,7 @@ pdsi_df <- purrr::map_dfr( # return a data frame created by row-binding
 )
 
 dim(pdsi_df)
+head(pdsi_df)
 ```
 
 A little cleanup is needed now. Since the year_id column isn't the actual year, but an index, I need to make a key to match 1 to the first year, 2 to the second, and so on. Left join the "key" dataframe to "pdsi_df" so that all the values in "pdsi_df" are retained. Then add a column for the name of the event only during the event years:
