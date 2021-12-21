@@ -1,5 +1,5 @@
 ---
-title: "Living Blended Drought Atlas gif"
+title: "Living Blended Drought Atlas GIF"
 author: "Laura Smith"
 date: "12/20/2021"
 output:
@@ -11,15 +11,15 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-Walkthrough for making visualization in R using data from Ed Cook et. al's Living Blended Drought Atlas. I tried to leave a lot of the process here as a learning tool.
+A walkthrough for making visualizations in R using data from Ed Cook et. al's Living Blended Drought Atlas. I tried to leave a lot of the process here as a learning tool.
 
 Want to make your own? Change the "all_years", "event_years", "name", and "desc" objects in the "define-variables" code chunk to match your period of interest and run the code. Grab the LBDA_viz.rmd file from my github repository to avoid having to copy/paste all this 
 https://github.com/lgsmith295/LBDA_viz
 
-Reach out to me on twitter find mistakes or run into trouble!
+Reach out to me on twitter if you find mistakes or run into trouble!
 https://twitter.com/chlorophileB
 
-Data downloaded from: https://www.ncei.noaa.gov/access/paleo-search/study/19119. Values represents summer PDSI (June, July, August) for each year in each gridcell.
+Data downloaded from: https://www.ncei.noaa.gov/access/paleo-search/study/19119. Values represents summer PDSI (June, July, August) for each year in each gridcell. You want the netCDF file.
 
 Load Packages. You may need to install any you don't already have. Do that using install_packages("nameofpackage")
 
@@ -55,7 +55,7 @@ time <- LBDA$dim$time$vals
 ```
 
 
-Missing values in pdsi are denoted with -99.999. Avoid using numbers to denote missing values, this could really throw things off if you tried to, for example, calculate the average gridcell value for a region. Replace with NAs.
+Missing values in pdsi are denoted with -99.999. Always avoid using numbers to denote missing values. This could really throw things off if you tried to, for example, calculate the average gridcell value for a region. Replace with NAs.
 
 
 ```{r}
